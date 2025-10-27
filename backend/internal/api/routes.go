@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/erdajt/code-review-ai/backend/config"
+	apimiddleware "github.com/erdajt/code-review-ai/backend/internal/middleware"
 	"github.com/erdajt/code-review-ai/backend/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -11,12 +12,12 @@ import (
 var v1prefix = "/api/v1"
 
 func NewRouter(
-	Cfg *config.Config,
+	cfg *config.Config,
+	authService service.AuthService,
 	chatService service.ChatService,
 ) *chi.Mux {
 	r := chi.NewRouter()
 
-	// middleware
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
@@ -26,6 +27,16 @@ func NewRouter(
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 	}))
+
+	r.Route(v1prefix, func(r chi.Router) {
+		r.Post("/auth/register", authService.Register)
+		r.Post("/auth/login", authService.Login)
+
+		r.Group(func(r chi.Router) {
+			r.Use(apimiddleware.AuthMiddleware(cfg))
+			r.Post("/chat", chatService.SendMessage)
+		})
+	})
 
 	return r
 }

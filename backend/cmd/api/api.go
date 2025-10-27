@@ -55,11 +55,15 @@ func New() {
 		}
 	}()
 
+	authRepo := repository.NewAuthRepository(db, cfg)
+	authHandler := handlers.NewAuthHandler(cfg, authRepo)
+	authService := service.NewAuthService(authHandler)
+
 	chatRepo := repository.NewChatRepository(db, cfg)
 	chatHandler := handlers.NewChatHandler(cfg, chatRepo)
 	chatService := service.NewChatService(chatHandler)
 
-	router := routes.NewRouter(cfg, chatService)
+	router := routes.NewRouter(cfg, authService, chatService)
 
 	server := &http.Server{
 		Addr:         ":" + cfg.Server.Port,

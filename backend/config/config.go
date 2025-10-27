@@ -46,6 +46,7 @@ type LoggingConfig struct {
 
 type Credentials struct {
 	OpenAIKey string `mapstructure:"OPENAI_KEY"`
+	JWTSecret string `mapstructure:"JWT_SECRET"`
 }
 
 var (
@@ -99,12 +100,13 @@ func Load() (*Config, error) {
 }
 
 func (db *DatabaseConfig) ConnectionString() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&timeout=10s",
-		db.User,
-		db.Password,
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		db.Host,
 		db.Port,
+		db.User,
+		db.Password,
 		db.Name,
+		db.SSLMode,
 	)
 }
 
