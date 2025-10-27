@@ -1,0 +1,23 @@
+env: prod
+
+db:
+  host: host
+  port: 5432
+  user: user
+  password: pass
+  name: name
+  ssl_mode: disable
+  max_open_conns: 25
+  max_idle_conns: 25
+  conn_max_lifetime: "5m"
+
+server:
+  port: "8080"
+  frontend_url: "http://localhost:5173"
+  read_timeout: "15s"
+  write_timeout: "15s"
+  idle_timeout: "60s"
+
+logging:
+  level: info
+  format: json
