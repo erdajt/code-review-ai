@@ -12,6 +12,7 @@ import (
 type ChatRepository interface {
 	CreateConversation(userID, title string) (*types.Conversation, error)
 	GetConversation(conversationID, userID string) (*types.Conversation, error)
+	GetUserConversations(userID string) ([]types.Conversation, error)
 	SaveMessage(conversationID, sender, content string) (*types.Message, error)
 	GetConversationMessages(conversationID string) ([]types.Message, error)
 }
@@ -112,4 +113,26 @@ func (r *ChatRepositoryImpl) GetConversationMessages(conversationID string) ([]t
 	}
 
 	return messages, nil
+}
+
+func (r *ChatRepositoryImpl) GetUserConversations(userID string) ([]types.Conversation, error) {
+	query := `SELECT conversation_id, user_id, title, started_at FROM conversations WHERE user_id = $1 ORDER BY started_at DESC`
+
+	rows, err := r.db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	conversations := []types.Conversation{}
+	for rows.Next() {
+		var conv types.Conversation
+		err := rows.Scan(&conv.ConversationID, &conv.UserID, &conv.Title, &conv.StartedAt)
+		if err != nil {
+			return nil, err
+		}
+		conversations = append(conversations, conv)
+	}
+
+	return conversations, nil
 }

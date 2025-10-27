@@ -15,6 +15,7 @@ func NewRouter(
 	cfg *config.Config,
 	authService service.AuthService,
 	chatService service.ChatService,
+	historyService service.HistoryService,
 ) *chi.Mux {
 	r := chi.NewRouter()
 
@@ -35,6 +36,8 @@ func NewRouter(
 		r.Group(func(r chi.Router) {
 			r.Use(apimiddleware.AuthMiddleware(cfg))
 			r.Post("/chat", chatService.SendMessage)
+			r.Get("/conversations", historyService.GetConversations)
+			r.Post("/messages", historyService.GetMessages)
 		})
 	})
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { Conversation, Message, Folder } from '@/types'
 import { storage } from '@/lib/storage'
 import { api } from '@/lib/api'
@@ -30,17 +30,38 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
+  const loadConversations = useCallback(async () => {
+    if (!user) return
+
+    try {
+      const backendConvs = await api.chat.getConversations(user.token)
+      const storedMappings = storage.getConversations()
+
+      const conversations: Conversation[] = backendConvs.map(conv => {
+        const stored = storedMappings.find(c => c.id === conv.conversation_id)
+        return {
+          id: conv.conversation_id,
+          messages: [],
+          title: conv.title,
+          updatedAt: new Date(conv.started_at),
+          folderId: stored?.folderId,
+        }
+      })
+
+      setConversations(conversations)
+      storage.setConversations(conversations)
+    } catch (error) {
+      console.error('Failed to load conversations:', error)
+    }
+  }, [user])
+
   useEffect(() => {
     if (user) {
-      const stored = storage.getConversations()
-      setConversations(stored)
+      loadConversations()
       const storedFolders = storage.getFolders()
       setFolders(storedFolders)
-      if (stored.length > 0 && !currentConversation) {
-        setCurrentConversation(stored[0])
-      }
     }
-  }, [user, currentConversation])
+  }, [user, loadConversations])
 
   useEffect(() => {
     if (user) {
@@ -64,9 +85,35 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     setCurrentConversation(newConversation)
   }
 
-  const selectConversation = (id: string) => {
+  const selectConversation = async (id: string) => {
     const conversation = conversations.find(c => c.id === id)
-    if (conversation) {
+    if (!conversation || !user) return
+
+    if (conversation.messages.length === 0) {
+      try {
+        const backendMessages = await api.chat.getMessages(user.token, id)
+        const messages: Message[] = backendMessages.map(msg => ({
+          id: msg.message_id,
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.content,
+          timestamp: new Date(msg.sent_at),
+        }))
+
+        const loadedConversation = {
+          ...conversation,
+          messages,
+        }
+
+        setCurrentConversation(loadedConversation)
+
+        setConversations(prev => 
+          prev.map(c => c.id === id ? loadedConversation : c)
+        )
+      } catch (error) {
+        console.error('Failed to load messages:', error)
+        setCurrentConversation(conversation)
+      }
+    } else {
       setCurrentConversation(conversation)
     }
   }
@@ -123,8 +170,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setCurrentConversation(finalConversation)
 
       setConversations(prev => {
-        const filtered = prev.filter(c => c.id !== response.conversation_id)
-        return [finalConversation, ...filtered]
+        const existing = prev.find(c => c.id === response.conversation_id)
+        if (existing) {
+          return prev.map(c => c.id === response.conversation_id ? finalConversation : c)
+        }
+        return [finalConversation, ...prev]
       })
     } catch (error) {
       console.error('Failed to send message:', error)

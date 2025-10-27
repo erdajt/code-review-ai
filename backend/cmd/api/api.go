@@ -63,7 +63,10 @@ func New() {
 	chatHandler := handlers.NewChatHandler(cfg, chatRepo)
 	chatService := service.NewChatService(chatHandler)
 
-	router := routes.NewRouter(cfg, authService, chatService)
+	historyHandler := handlers.NewHistoryHandler(cfg, chatRepo)
+	historyService := service.NewHistoryService(historyHandler)
+
+	router := routes.NewRouter(cfg, authService, chatService, historyService)
 
 	server := &http.Server{
 		Addr:         ":" + cfg.Server.Port,

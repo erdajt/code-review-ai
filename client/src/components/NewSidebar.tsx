@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 
 export default function NewSidebar() {
   const [isOpen, setIsOpen] = useState(true)
-  const [showGPTs, setShowGPTs] = useState(false)
+  const [showGPTs, setShowGPTs] = useState(true)
   const { user, logout } = useAuth()
   const {
     conversations,
@@ -69,24 +69,24 @@ export default function NewSidebar() {
                 </button>
               </div>
 
-              <div className="flex gap-2 text-xs">
-                <button className="flex-1 px-3 py-2 bg-gray-900 hover:bg-gray-800 rounded-lg transition">
-                  <svg className="w-4 h-4 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="space-y-1 text-sm">
+                <button className="w-full flex items-center gap-2 px-3 py-2 bg-gray-900 hover:bg-gray-800 rounded-lg transition">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  Search
+                  <span>Search Chats</span>
                 </button>
-                <button className="flex-1 px-3 py-2 bg-gray-900 hover:bg-gray-800 rounded-lg transition">
-                  <svg className="w-4 h-4 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button className="w-full flex items-center gap-2 px-3 py-2 bg-gray-900 hover:bg-gray-800 rounded-lg transition">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
-                  Library
+                  <span>Library</span>
                 </button>
-                <button className="flex-1 px-3 py-2 bg-gray-900 hover:bg-gray-800 rounded-lg transition">
-                  <svg className="w-4 h-4 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button className="w-full flex items-center gap-2 px-3 py-2 bg-gray-900 hover:bg-gray-800 rounded-lg transition">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                   </svg>
-                  Codex
+                  <span>Codex</span>
                 </button>
               </div>
             </div>

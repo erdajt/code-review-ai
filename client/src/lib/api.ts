@@ -56,6 +56,25 @@ export const api = {
           }),
         }
       ),
+
+    getConversations: (token: string) =>
+      fetchApi<Array<{ conversation_id: string; user_id: string; title: string; started_at: string }>>(
+        '/conversations',
+        {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      ),
+
+    getMessages: (token: string, conversationId: string) =>
+      fetchApi<Array<{ message_id: string; conversation_id: string; sender: string; content: string; sent_at: string }>>(
+        '/messages',
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ conversation_id: conversationId }),
+        }
+      ),
   },
 }
 
