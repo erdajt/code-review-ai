@@ -1,8 +1,9 @@
-import { Conversation } from '@/types'
+import { Conversation, Folder } from '@/types'
 
 const STORAGE_KEYS = {
   USER: 'user',
   CONVERSATIONS: 'conversations',
+  FOLDERS: 'folders',
 } as const
 
 export const storage = {
@@ -12,7 +13,7 @@ export const storage = {
     return data ? JSON.parse(data) : null
   },
 
-  setUser: (user: { userId: string; token: string } | null) => {
+  setUser: (user: { userId: string; token: string; username: string } | null) => {
     if (typeof window === 'undefined') return
     if (user) {
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user))
@@ -30,6 +31,17 @@ export const storage = {
   setConversations: (conversations: Conversation[]) => {
     if (typeof window === 'undefined') return
     localStorage.setItem(STORAGE_KEYS.CONVERSATIONS, JSON.stringify(conversations))
+  },
+
+  getFolders: (): Folder[] => {
+    if (typeof window === 'undefined') return []
+    const data = localStorage.getItem(STORAGE_KEYS.FOLDERS)
+    return data ? JSON.parse(data) : []
+  },
+
+  setFolders: (folders: Folder[]) => {
+    if (typeof window === 'undefined') return
+    localStorage.setItem(STORAGE_KEYS.FOLDERS, JSON.stringify(folders))
   },
 }
 

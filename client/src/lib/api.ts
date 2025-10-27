@@ -45,7 +45,7 @@ export const api = {
 
   chat: {
     sendMessage: (token: string, message: string, conversationId?: string) =>
-      fetchApi<{ conversation_id: string; message_id: string; reply: string }>(
+      fetchApi<{ conversation_id: string; message_id: string; reply: string; title: string }>(
         '/chat',
         {
           method: 'POST',

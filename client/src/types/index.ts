@@ -1,6 +1,7 @@
 export interface User {
   userId: string
   token: string
+  username: string
 }
 
 export interface Message {
@@ -13,8 +14,15 @@ export interface Message {
 export interface Conversation {
   id: string
   messages: Message[]
-  preview: string
+  title: string
   updatedAt: Date
+  folderId?: string
+}
+
+export interface Folder {
+  id: string
+  name: string
+  createdAt: Date
 }
 
 export interface AuthResponse {
@@ -26,5 +34,6 @@ export interface ChatResponse {
   conversation_id: string
   message_id: string
   reply: string
+  title: string
 }
 

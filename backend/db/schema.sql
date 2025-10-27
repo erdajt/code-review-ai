@@ -7,6 +7,7 @@ CREATE TABLE users (
 CREATE TABLE conversations (
     conversation_id UUID PRIMARY KEY,
     user_id UUID REFERENCES users(user_id),
+    title VARCHAR(50),
     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

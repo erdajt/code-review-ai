@@ -29,14 +29,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string) => {
     const response = await api.auth.login(username, password)
-    const userData = { userId: response.user_id, token: response.token }
+    const userData = { userId: response.user_id, token: response.token, username }
     setUser(userData)
     storage.setUser(userData)
   }
 
   const register = async (username: string, password: string) => {
     const response = await api.auth.register(username, password)
-    const userData = { userId: response.user_id, token: response.token }
+    const userData = { userId: response.user_id, token: response.token, username }
     setUser(userData)
     storage.setUser(userData)
   }

@@ -1,19 +1,24 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { Conversation, Message } from '@/types'
+import { Conversation, Message, Folder } from '@/types'
 import { storage } from '@/lib/storage'
 import { api } from '@/lib/api'
 import { useAuth } from './AuthContext'
 
 interface ChatContextValue {
   conversations: Conversation[]
+  folders: Folder[]
   currentConversation: Conversation | null
   isLoading: boolean
   createNewChat: () => void
   selectConversation: (id: string) => void
   sendMessage: (content: string) => Promise<void>
   deleteConversation: (id: string) => void
+  createFolder: (name: string) => void
+  deleteFolder: (id: string) => void
+  moveToFolder: (conversationId: string, folderId: string | undefined) => void
+  renameFolder: (id: string, newName: string) => void
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined)
@@ -21,6 +26,7 @@ const ChatContext = createContext<ChatContextValue | undefined>(undefined)
 export function ChatProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [conversations, setConversations] = useState<Conversation[]>([])
+  const [folders, setFolders] = useState<Folder[]>([])
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -28,6 +34,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (user) {
       const stored = storage.getConversations()
       setConversations(stored)
+      const storedFolders = storage.getFolders()
+      setFolders(storedFolders)
       if (stored.length > 0 && !currentConversation) {
         setCurrentConversation(stored[0])
       }
@@ -40,11 +48,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [conversations, user])
 
+  useEffect(() => {
+    if (user) {
+      storage.setFolders(folders)
+    }
+  }, [folders, user])
+
   const createNewChat = () => {
     const newConversation: Conversation = {
       id: '',
       messages: [],
-      preview: 'New chat',
+      title: 'New chat',
       updatedAt: new Date(),
     }
     setCurrentConversation(newConversation)
@@ -76,8 +90,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     const tempConversation: Conversation = {
       id: currentConversation?.id || '',
       messages: updatedMessages,
-      preview: content.slice(0, 50),
+      title: currentConversation?.title || 'New chat',
       updatedAt: new Date(),
+      folderId: currentConversation?.folderId,
     }
 
     setCurrentConversation(tempConversation)
@@ -100,8 +115,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       const finalConversation: Conversation = {
         id: response.conversation_id,
         messages: finalMessages,
-        preview: content.slice(0, 50),
+        title: response.title,
         updatedAt: new Date(),
+        folderId: currentConversation?.folderId,
       }
 
       setCurrentConversation(finalConversation)
@@ -124,16 +140,45 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const createFolder = (name: string) => {
+    const newFolder: Folder = {
+      id: Date.now().toString(),
+      name,
+      createdAt: new Date(),
+    }
+    setFolders(prev => [...prev, newFolder])
+  }
+
+  const deleteFolder = (id: string) => {
+    setFolders(prev => prev.filter(f => f.id !== id))
+    setConversations(prev => prev.map(c => c.folderId === id ? { ...c, folderId: undefined } : c))
+  }
+
+  const moveToFolder = (conversationId: string, folderId: string | undefined) => {
+    setConversations(prev =>
+      prev.map(c => c.id === conversationId ? { ...c, folderId } : c)
+    )
+  }
+
+  const renameFolder = (id: string, newName: string) => {
+    setFolders(prev => prev.map(f => f.id === id ? { ...f, name: newName } : f))
+  }
+
   return (
     <ChatContext.Provider
       value={{
         conversations,
+        folders,
         currentConversation,
         isLoading,
         createNewChat,
         selectConversation,
         sendMessage,
         deleteConversation,
+        createFolder,
+        deleteFolder,
+        moveToFolder,
+        renameFolder,
       }}
     >
       {children}
@@ -148,4 +193,3 @@ export function useChat() {
   }
   return context
 }
-

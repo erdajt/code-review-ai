@@ -9,6 +9,7 @@ type ChatResponse struct {
 	ConversationID string `json:"conversation_id"`
 	MessageID      string `json:"message_id"`
 	Reply          string `json:"reply"`
+	Title          string `json:"title"`
 }
 
 type ErrorResponse struct {

@@ -34,7 +34,8 @@ func (h *ChatHandler) ProcessChat(userID, conversationID, message string) (*type
 	var err error
 
 	if conversationID == "" {
-		conversation, err = h.chatRepo.CreateConversation(userID)
+		title := h.generateTitle(message)
+		conversation, err = h.chatRepo.CreateConversation(userID, title)
 		if err != nil {
 			return nil, err
 		}
@@ -70,6 +71,7 @@ func (h *ChatHandler) ProcessChat(userID, conversationID, message string) (*type
 		ConversationID: conversationID,
 		MessageID:      userMessage.MessageID,
 		Reply:          aiReply,
+		Title:          conversation.Title,
 	}, nil
 }
 
@@ -125,4 +127,43 @@ Be professional, concise, and helpful in all responses.`
 	}
 
 	return resp.Choices[0].Message.Content, nil
+}
+
+func (h *ChatHandler) generateTitle(message string) string {
+	truncated := message
+	if len(message) > 200 {
+		truncated = message[:200]
+	}
+
+	resp, err := h.openaiClient.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT4oMini,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: "Generate a short, concise title (max 50 characters) for this conversation. Return only the title, no quotes or punctuation.",
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: truncated,
+				},
+			},
+			MaxTokens: 20,
+		},
+	)
+
+	if err != nil || len(resp.Choices) == 0 {
+		if len(message) > 40 {
+			return message[:40] + "..."
+		}
+		return message
+	}
+
+	title := resp.Choices[0].Message.Content
+	if len(title) > 50 {
+		title = title[:47] + "..."
+	}
+
+	return title
 }

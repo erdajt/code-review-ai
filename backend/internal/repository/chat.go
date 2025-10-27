@@ -10,7 +10,7 @@ import (
 )
 
 type ChatRepository interface {
-	CreateConversation(userID string) (*types.Conversation, error)
+	CreateConversation(userID, title string) (*types.Conversation, error)
 	GetConversation(conversationID, userID string) (*types.Conversation, error)
 	SaveMessage(conversationID, sender, content string) (*types.Message, error)
 	GetConversationMessages(conversationID string) ([]types.Message, error)
@@ -28,17 +28,18 @@ func NewChatRepository(db *sql.DB, cfg *config.Config) ChatRepository {
 	}
 }
 
-func (r *ChatRepositoryImpl) CreateConversation(userID string) (*types.Conversation, error) {
+func (r *ChatRepositoryImpl) CreateConversation(userID, title string) (*types.Conversation, error) {
 	conversationID := uuid.New().String()
 
-	query := `INSERT INTO conversations (conversation_id, user_id) VALUES ($1, $2) RETURNING started_at`
+	query := `INSERT INTO conversations (conversation_id, user_id, title) VALUES ($1, $2, $3) RETURNING started_at`
 
 	conversation := &types.Conversation{
 		ConversationID: conversationID,
 		UserID:         userID,
+		Title:          title,
 	}
 
-	err := r.db.QueryRow(query, conversationID, userID).Scan(&conversation.StartedAt)
+	err := r.db.QueryRow(query, conversationID, userID, title).Scan(&conversation.StartedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -47,12 +48,13 @@ func (r *ChatRepositoryImpl) CreateConversation(userID string) (*types.Conversat
 }
 
 func (r *ChatRepositoryImpl) GetConversation(conversationID, userID string) (*types.Conversation, error) {
-	query := `SELECT conversation_id, user_id, started_at FROM conversations WHERE conversation_id = $1`
+	query := `SELECT conversation_id, user_id, title, started_at FROM conversations WHERE conversation_id = $1`
 
 	conversation := &types.Conversation{}
 	err := r.db.QueryRow(query, conversationID).Scan(
 		&conversation.ConversationID,
 		&conversation.UserID,
+		&conversation.Title,
 		&conversation.StartedAt,
 	)
 
